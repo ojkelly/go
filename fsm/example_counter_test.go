@@ -3,7 +3,7 @@ package fsm_test
 import (
 	"fmt"
 
-	"github.com/ojkelly/control/fsm"
+	"ojkelly.dev/fsm"
 )
 
 func Example_counter() {

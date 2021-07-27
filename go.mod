@@ -1,4 +1,4 @@
-module github.com/ojkelly/control
+module ojkelly.dev
 
 go 1.16
 

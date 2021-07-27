@@ -1,6 +1,8 @@
-# Control
+# Go libraries
 
-## fsm - WIP
+This repository is a collection of go libraries I've built and maintain.
+
+## fsm - a WIP Finite State machine
 
 A Finite State Machine for go.
 
@@ -8,11 +10,11 @@ A Finite State Machine for go.
 package main
 
 import (
-	"github.com/ojkelly/control/fsm"
+	"ojkelly.dev/fsm"
 )
 ```
 
-## How it works
+### How it works
 
 - `Events` cause a `Transition` from one `State` to another `State`
 - `Guard` functions can prevent `Transitions`
