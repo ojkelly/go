@@ -1,155 +1,193 @@
 package fsm_test
 
 import (
-	"fmt"
 	"testing"
-
-	"github.com/ojkelly/control/fsm"
 )
 
-func Test_Counter(t *testing.T) {
+// func Test_Counter(t *testing.T) {
 
-	// States a machine can be in
-	const (
-		Inactive fsm.State = "Inactive"
-		Active   fsm.State = "Active"
-	)
+// 	// States a machine can be in ------------------------------------------------
+// 	const (
+// 		// the first value (your zero-value) should be the default
+// 		Inactive fsm.State = iota
+// 		Active
+// 	)
 
-	// Events that can change state
-	const (
-		Activate   fsm.Event = "Activate"
-		Deactivate fsm.Event = "Deactivate"
-		Increment  fsm.Event = "Increment"
-		Decrement  fsm.Event = "Decrement"
-	)
+// 	stateNames := fsm.StateNames{
+// 		Inactive: "Inactive",
+// 		Active:   "Active",
+// 	}
 
-	// ContextKeys for storing extra state
-	const (
-		KeyCounter fsm.ContextKey = "Counter"
-		KeyIsReady fsm.ContextKey = "IsReady"
-	)
+// 	// Events that can change state ----------------------------------------------
+// 	const (
+// 		Activate fsm.Event = iota
+// 		Deactivate
+// 		Increment
+// 		Decrement
+// 	)
 
-	errorHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-		fmt.Println("Error: Left", current, "entered", next, event)
+// 	eventNames := fsm.EventNames{
+// 		Activate:   "Activate",
+// 		Deactivate: "Deactivate",
+// 		Increment:  "Increment",
+// 		Decrement:  "Decrement",
+// 	}
 
-		m.Event(Deactivate)
-	}
-	successHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-		fmt.Println("Success: Left", current, "entered", next)
-	}
-	logEvent := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-		fmt.Println("Left", current, "entered", next, event)
-	}
-	guardActive := func(m *fsm.Machine, current fsm.State, next fsm.State) bool {
-		if v := m.Get(KeyIsReady); v != nil {
-			fmt.Println("guardActive", v)
+// 	// ContextKeys for storing extra state ---------------------------------------
+// 	const (
+// 		KeyCounter fsm.ContextKey = iota
+// 		KeyIsReady
+// 	)
 
-			ready := v.(bool)
-			fmt.Println("guardActive", current, "to", next, "is ready", ready)
+// 	contextKeyNames := fsm.ContextKeyNames{
+// 		KeyCounter: "Counter",
+// 		KeyIsReady: "IsReady",
+// 	}
 
-			return ready
-		}
-		return false
-	}
+// 	// Event Handlers ------------------------------------------------------------
+// 	errorHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, machineError fsm.MachineError) {
+// 		fmt.Println("Error: Left", current, "entered", next, machineError)
 
-	machine := fsm.New(
-		// machine ID
-		"counterExample",
-		// initial state
-		Inactive,
-		fsm.Context{
-			KeyIsReady: fsm.ContextMeta{
-				Write:  true, // can we use .Set()
-				Inital: false,
-			},
-			KeyCounter: fsm.ContextMeta{
-				Write:  false, // this can only be changed by events
-				Inital: 0,
-			},
-		},
-		// Possible events
-		[]fsm.Event{Activate, Deactivate, Increment, Decrement},
-		// State Map
-		fsm.States{
-			// Inactive state
-			Inactive: fsm.StateNode{
-				// Events that Inactive will transition on
-				Events: fsm.EventToTransition{
-					// On Activate event tranisition to Active
-					Activate: fsm.Transition{
-						State: Active,
-						Guard: guardActive,
-						Entry: logEvent,
-						Exit: func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-							m.Set(KeyIsReady, false)
-						},
-					},
-				},
-			},
-			// Active state
-			Active: fsm.StateNode{
-				Error:   errorHandler,
-				Success: successHandler,
-				Events: fsm.EventToTransition{
-					Increment: fsm.Transition{
-						State: Active,
-						Update: func(
-							m *fsm.Machine,
-							current fsm.State,
-							next fsm.State,
-							event fsm.TransitionEvent,
-						) (
-							key fsm.ContextKey,
-							value interface{},
-							err error,
-						) {
-							key = KeyCounter
-							var count int
-							if v := m.Get(KeyCounter); v != nil {
+// 		m.Event(Deactivate)
+// 	}
 
-								count = v.(int) + 1
-								fmt.Println("update", count)
-								value = count
-							}
-							return
-						},
-					},
-					Deactivate: fsm.Transition{
-						State: Inactive,
-					},
-				},
-			},
-		},
-		errorHandler,
-	)
+// 	successHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
+// 		fmt.Println("Success: Left", current, "entered", next)
+// 	}
 
-	fmt.Printf("Current State: %v \n", machine.State())
+// 	logEvent := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
+// 		fmt.Println("Left", current, "entered", next, event)
+// 	}
 
-	machine.Event(Increment)
-	fmt.Printf("State after first Increment: %v \n", machine.State())
+// 	guardActive := func(m *fsm.Machine, current fsm.State, next fsm.State) bool {
+// 		if v := m.Get(KeyIsReady); v != nil {
+// 			fmt.Println("guardActive", v)
 
-	machine.Set(KeyIsReady, true)
-	machine.Event(Activate)
-	fmt.Printf("State after first Activate: %v \n", machine.State())
+// 			ready := v.(bool)
+// 			fmt.Println("guardActive", current, "to", next, "is ready", ready)
 
-	machine.Event(Increment)
-	machine.Event(Increment)
-	machine.Event(Increment)
+// 			return ready
+// 		}
+// 		return false
+// 	}
 
-	machine.Event(Deactivate)
-	s := machine.State()
-	fmt.Println(fmt.Errorf("state %v", s))
-	if s != Inactive {
-		fmt.Println("State should equal Inactive, got ", s)
-		t.Fail()
-	}
-	if v := machine.Get(KeyCounter).(int); v != 3 {
-		fmt.Println("Counter should equal 3, got ", v)
-		t.Fail()
-	}
+// 	// Machine Creator -----------------------------------------------------------
+// 	machine := fsm.New(
+// 		// machine ID
+// 		"counterExample",
+// 		// initial state
+// 		Inactive,
 
-	fmt.Printf("end of test %v\n", machine.Get(KeyCounter).(int))
-}
+// 		// Context Keys
+// 		fsm.Context{
+// 			KeyIsReady: fsm.ContextMeta{
+// 				Protected: true, // can we use .Set()
+// 				Inital:    false,
+// 			},
+// 			KeyCounter: fsm.ContextMeta{
+// 				Protected: false, // this can only be changed by events
+// 				Inital:    0,
+// 			},
+// 		},
+
+// 		// Possible events
+// 		[]fsm.Event{Activate, Deactivate, Increment, Decrement},
+
+// 		// State Map
+// 		fsm.States{
+// 			// Inactive state
+// 			Inactive: fsm.StateNode{
+// 				// Events that Inactive will transition on
+// 				Events: fsm.EventToTransition{
+// 					// On Activate event tranisition to Active
+// 					Activate: fsm.Transition{
+// 						State: Active,
+// 						Guard: guardActive,
+// 						Entry: logEvent,
+// 						Exit: func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
+// 							m.Set(KeyIsReady, false)
+// 						},
+// 					},
+// 				},
+// 			},
+
+// 			// Active state
+// 			Active: fsm.StateNode{
+// 				Error:   errorHandler,
+// 				Success: successHandler,
+// 				Events: fsm.EventToTransition{
+// 					Increment: fsm.Transition{
+// 						State: Active,
+// 						ContextUpdate: func(
+// 							m *fsm.Machine,
+// 							current fsm.State,
+// 							next fsm.State,
+// 							event fsm.TransitionEvent,
+// 						) (
+// 							update fsm.ContextUpdate,
+// 							err error,
+// 						) {
+// 							if v := m.Get(KeyCounter); v != nil {
+// 								update[KeyCounter] = v.(int) + 1
+// 							} else {
+// 								err = fmt.Errorf("Unable to update KeyCounter")
+// 							}
+// 							return
+// 						},
+// 					},
+// 					Deactivate: fsm.Transition{
+// 						State: Inactive,
+// 					},
+// 				},
+// 			},
+// 		},
+// 		// Machine level handlers
+// 		errorHandler,
+// 	)
+
+// 	// This is optional, but useful if you want to enhance your logging, or
+// 	// you have a large number of states
+// 	machine.AddStateNames(stateNames)
+// 	machine.AddEventNames(eventNames)
+// 	machine.AddContextKeyNames(contextKeyNames)
+
+// 	assert.Equal(t, machine.State(), Inactive, "initial state should be Inactive")
+
+// 	assert.Equal(
+// 		t,
+// 		machine.GetNameForState(machine.State()),
+// 		stateNames[Inactive],
+// 		"our state names were set correctly",
+// 	)
+
+// 	// Try to increment - nothing should happen as we're Inactive at the moment
+// 	machine.Event(Increment)
+// 	counter := machine.Get(KeyCounter).(int)
+// 	assert.Equal(t, counter, 0, "our counter should still be 0")
+
+// 	isReady := machine.Get(KeyIsReady).(bool)
+// 	assert.Equal(t, isReady, false, "The machine shouldn't be ready yet")
+
+// 	machine.Set(KeyIsReady, true)
+// 	isReady = machine.Get(KeyIsReady).(bool)
+
+// 	assert.Equal(t, isReady, true, "context isReady should be true now")
+
+// 	machine.Event(Activate)
+// 	assert.Equal(t, machine.State(), Active, "machine state should be Active")
+
+// 	// Increment 3 times
+// 	machine.Event(Increment)
+// 	machine.Event(Increment)
+// 	machine.Event(Increment)
+
+// 	counter = machine.Get(KeyCounter).(int)
+// 	assert.Equal(t, counter, 3, "our counter should now be 3")
+
+// 	machine.Event(Deactivate)
+// 	assert.Equal(t, machine.State(), Inactive, "machine state should now be Inactive")
+
+// }
 
 func Test_TCPMachine(t *testing.T) {
 	t.Skip()

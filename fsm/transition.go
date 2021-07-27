@@ -5,7 +5,6 @@ type TransitionEvent string
 const (
 	TransitionEventEntry   TransitionEvent = "Entry"
 	TransitionEventExit    TransitionEvent = "Exit"
-	TransitionEventError   TransitionEvent = "Error"
 	TransitionEventSuccess TransitionEvent = "Success"
 )
 
@@ -19,8 +18,10 @@ type Transition struct {
 	Guard Guard
 	// Entry called when transitioning to this State
 	Entry TransitionEventHandler
-	// Exist called when leaving this State for another
+	// Exit called when leaving this State for another
 	Exit TransitionEventHandler
 
-	Update ContextUpdateHandler
+	// ContextUpdate allows to update protected context values in response
+	// to an Event
+	ContextUpdate ContextUpdateHandler
 }

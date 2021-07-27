@@ -2,14 +2,38 @@ package fsm
 
 import "fmt"
 
-type Event string
+type Event int
+
+// EventNames are optional, but useful for debugging and will print out in
+// error messages
+type EventNames map[Event]string
+
+// AddEventNames will add Event names for debugging.
+// This can only be called once, and does not affect the functioning of the
+// machine.
+func (m *Machine) AddEventNames(e EventNames) {
+	if m.hasSetEventNames {
+		return
+	}
+
+	m.hasSetEventNames = true
+	m.eventNames = e
+}
+
+// GetNameForEvent will return the name set in EventNames for the given
+// Event, or it will return the Event int as a string
+func (m *Machine) GetNameForEvent(s Event) string {
+	if sn, ok := m.eventNames[s]; ok {
+		return sn
+	}
+	return fmt.Sprintf("%d", s)
+}
+
 type eventMap map[Event]bool
 type EventToTransition map[Event]Transition
 
 func (m *Machine) Event(e Event) {
 	m.checkIfCreatedCorrectly()
-	// m.mtx.RLock()
-	// defer m.mtx.RUnlock()
 
 	// validate event
 	found := m.events[e]
@@ -45,60 +69,35 @@ func (m *Machine) Event(e Event) {
 		}
 	}
 
-	// Transition hooks
-	// m.mtx.RUnlock()
-	if ev := node.Events[e]; ev.Exit != nil {
-		ev.Exit(m, currentState, transition.State, TransitionEventEntry)
-	}
+	// Transition hooks only run if the state changes to a different one
+	if currentState != transition.State {
+		if ev := node.Events[e]; ev.Exit != nil {
+			ev.Exit(m, currentState, transition.State, TransitionEventEntry)
+		}
 
-	if transition.Entry != nil {
-		transition.Entry(m, currentState, transition.State, TransitionEventEntry)
-	}
-
-	if transition.Update != nil {
-		key, value, err := transition.Update(m, currentState, transition.State, TransitionEventEntry)
-
-		if err == nil && value != nil {
-			if v := m.context[key]; v != nil {
-				m.context[key] = &contextMeta{
-					key:   key,
-					write: v.write,
-					value: value,
-				}
-			}
+		if transition.Entry != nil {
+			transition.Entry(m, currentState, transition.State, TransitionEventEntry)
 		}
 	}
-	// m.mtx.RLock()
+
+	if transition.ContextUpdate != nil {
+		m.handleContextUpdate(transition, currentState)
+	}
 
 	m.state = transition.State
-}
-
-// Error is called by you when a state encounters an error
-// the FSM will check and see if there is an error handler
-// otherwise it will bubble the error up to the top level
-// error handler
-func (m *Machine) Error() {
-	currentState := m.state
-	node := m.states[currentState]
-
-	handler := node.Error
-	if handler != nil {
-		handler(m, currentState, currentState, TransitionEventError)
-		return
-	}
-	m.errorHandler(m, currentState, currentState, TransitionEventError)
 }
 
 // Success is called by you when a state has completed successfully, and
 // you want the FSM to transition automatically
 func (m *Machine) Success() {
+	m.checkIfCreatedCorrectly()
+
 	currentState := m.state
 	node := m.states[currentState]
 
 	handler := node.Success
 	if handler != nil {
-		handler(m, currentState, currentState, TransitionEventError)
+		handler(m, currentState, currentState, TransitionEventSuccess)
 		return
 	}
-
 }
