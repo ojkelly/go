@@ -1,6 +1,4 @@
-/* fsm
-
-A Finite State Machine with support for States, Transitions, Events and Handlers.
+/* A Finite State Machine with support for States, Transitions, Events and Handlers.
 
 Inpsired by the likes of XState and similar FSM's this one isn't as extensive.
 Instead it's focussed on being idiomatic go.
@@ -10,7 +8,7 @@ How it works
 At its core an FSM is a way to manage the process from moving from one State to
 another.
 
-In "ojkelly.dev/fsm" you define your States as a const of fsm.State for example:
+In _ojkelly.dev/fs_ you define your States as a const of fsm.State for example:
 
 	const (
 		StepZero fsm.State = iota
@@ -41,14 +39,16 @@ are not met.
 After that, we call fsm.New() and pass in what we defined above. Look at the
 Counter example below, for the full code snippet.
 
+Defining States
+
 A key bit to look at for the moment is how we define fsm.States. In the example
 below we can see the state Inactive being defined, as responding only to the
-event `Activate`. When the fsm.Machine receives that event, if it's in the
-`Inactive` State it will attempt to transition to `Active`.
+event Activate. When the fsm.Machine receives that event, if it's in the
+Inactive State it will attempt to transition to Active.
 
-Before it can, the guard function will be called. If that returns `true`, then
-the `Exit` function defined below will run. Followed by the `Entry` function
-on `Active` if it exists. After that, the State will transition to `Active`.
+Before it can, the guard function will be called. If that returns true, then
+the Exit function defined below will run. Followed by the Entry function
+on Active if it exists. After that, the State will transition to Active.
 
 	fsm.States{
 		// Inactive state
@@ -74,6 +74,9 @@ on `Active` if it exists. After that, the State will transition to `Active`.
 		// ... Active State defintion not shown, see full example
 	}
 
+
+Adding debug information
+
 With the new fsm.Machine you can optionally add some maps to convert the State
 const's into a string. This is helpful for debugging, but not required.
 
@@ -83,9 +86,13 @@ const's into a string. This is helpful for debugging, but not required.
 
 Now we can start using it!
 
+Sending Events
+
 We can send events like this:
 
 	machine.Event(Increment)
+
+Updating Context
 
 And update context values like this:
 
