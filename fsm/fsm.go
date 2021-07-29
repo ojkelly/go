@@ -70,6 +70,7 @@ func New(
 	}
 }
 
+// Id returns the id string of this machine
 func (m *Machine) Id() string {
 	m.checkIfCreatedCorrectly()
 	return m.id

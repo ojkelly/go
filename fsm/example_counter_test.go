@@ -49,7 +49,7 @@ func Example_counter() {
 	// Event Handlers ------------------------------------------------------------
 	errorHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, machineError fsm.MachineError) {
 		fmt.Println("Error: Left", m.GetNameForState(current), "entered", m.GetNameForState(next), machineError)
-		m.Event(Deactivate)
+		m.SendEvent(Deactivate)
 	}
 
 	successHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
@@ -61,7 +61,7 @@ func Example_counter() {
 	}
 
 	guardActive := func(m *fsm.Machine, current fsm.State, next fsm.State) bool {
-		if v := m.Get(KeyIsReady); v != nil {
+		if v := m.GetContext(KeyIsReady); v != nil {
 			ready := v.(bool)
 			return ready
 		}
@@ -102,7 +102,7 @@ func Example_counter() {
 						Guard: guardActive,
 						Entry: logEvent,
 						Exit: func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-							m.Set(KeyIsReady, false)
+							m.SetContext(KeyIsReady, false)
 						},
 					},
 				},
@@ -122,7 +122,7 @@ func Example_counter() {
 						State: Active, // Set the current state, because we want to stay
 						// Set our ContextUpdate handler, this allows us to modify any
 						// value in Context, in particular the ones marked with `write: false`
-						ContextUpdate: func(
+						UpdateContext: func(
 							m *fsm.Machine,
 							current fsm.State,
 							next fsm.State,
@@ -132,7 +132,7 @@ func Example_counter() {
 							err error,
 						) {
 							update = fsm.ContextUpdate{}
-							if v := m.Get(KeyCounter); v != nil {
+							if v := m.GetContext(KeyCounter); v != nil {
 								update[KeyCounter] = v.(int) + 1
 							} else {
 								err = fmt.Errorf("Unable to update KeyCounter")
@@ -163,38 +163,38 @@ func Example_counter() {
 	fmt.Println("StateName for the current state is", machine.GetNameForState(machine.State()))
 
 	// Try to increment - nothing should happen as we're Inactive at the moment
-	machine.Event(Increment)
+	machine.SendEvent(Increment)
 
 	// Let's check the counter. It shouldn't increase, as we can only do that
 	// when the State is Active
-	fmt.Println("Before incrementing Counter it's", machine.Get(KeyCounter).(int))
+	fmt.Println("Before incrementing Counter it's", machine.GetContext(KeyCounter).(int))
 
 	// Check if the ContextKey KeyIsReady
-	fmt.Println("Before setting the KeyIsReady it's", machine.Get(KeyIsReady).(bool))
+	fmt.Println("Before setting the KeyIsReady it's", machine.GetContext(KeyIsReady).(bool))
 
 	// Set the ContextKey KeyIsReady to true
-	machine.Set(KeyIsReady, true)
+	machine.SetContext(KeyIsReady, true)
 
 	// Confirm that our ContextKey is set
-	fmt.Println("Context KeyIsReady is", machine.Get(KeyIsReady).(bool))
+	fmt.Println("Context KeyIsReady is", machine.GetContext(KeyIsReady).(bool))
 
 	// Send an Activate Event, which will transition to the Active State if
 	// KeyIsReady is true
-	machine.Event(Activate)
+	machine.SendEvent(Activate)
 
 	// Let's see what State we're in now
 	fmt.Println("After Activate Event machine State is", machine.GetNameForState(machine.State()))
 
 	// Increment 3 times
-	machine.Event(Increment)
-	machine.Event(Increment)
-	machine.Event(Increment)
+	machine.SendEvent(Increment)
+	machine.SendEvent(Increment)
+	machine.SendEvent(Increment)
 
 	// Check the status of the KeyCounter value
-	fmt.Println("Final counter is at", machine.Get(KeyCounter).(int))
+	fmt.Println("Final counter is at", machine.GetContext(KeyCounter).(int))
 
 	// Now we can send the Deactivate Event as we're finished
-	machine.Event(Deactivate)
+	machine.SendEvent(Deactivate)
 	fmt.Println("Final State is", machine.GetNameForState(machine.State()))
 
 	// Output:

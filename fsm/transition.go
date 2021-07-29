@@ -21,7 +21,7 @@ type Transition struct {
 	// Exit called when leaving this State for another
 	Exit TransitionEventHandler
 
-	// ContextUpdate allows to update protected context values in response
+	// UpdateContext allows to update protected context values in response
 	// to an Event
-	ContextUpdate ContextUpdateHandler
+	UpdateContext ContextUpdateHandler
 }

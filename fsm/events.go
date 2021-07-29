@@ -32,7 +32,8 @@ func (m *Machine) GetNameForEvent(s Event) string {
 type eventMap map[Event]bool
 type EventToTransition map[Event]Transition
 
-func (m *Machine) Event(e Event) {
+// SendEvent to the fsm.Machine to change States
+func (m *Machine) SendEvent(e Event) {
 	m.checkIfCreatedCorrectly()
 
 	// validate event
@@ -80,7 +81,7 @@ func (m *Machine) Event(e Event) {
 		}
 	}
 
-	if transition.ContextUpdate != nil {
+	if transition.UpdateContext != nil {
 		m.handleContextUpdate(transition, currentState)
 	}
 

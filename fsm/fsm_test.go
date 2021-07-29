@@ -51,7 +51,7 @@ func Test_Counter(t *testing.T) {
 	// Event Handlers ------------------------------------------------------------
 	errorHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, machineError fsm.MachineError) {
 		fmt.Println("Error: Left", m.GetNameForState(current), "entered", m.GetNameForState(next), machineError)
-		m.Event(Deactivate)
+		m.SendEvent(Deactivate)
 	}
 
 	successHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
@@ -63,7 +63,7 @@ func Test_Counter(t *testing.T) {
 	}
 
 	guardActive := func(m *fsm.Machine, current fsm.State, next fsm.State) bool {
-		if v := m.Get(KeyIsReady); v != nil {
+		if v := m.GetContext(KeyIsReady); v != nil {
 			ready := v.(bool)
 			return ready
 		}
@@ -104,7 +104,7 @@ func Test_Counter(t *testing.T) {
 						Guard: guardActive,
 						Entry: logEvent,
 						Exit: func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-							m.Set(KeyIsReady, false)
+							m.SetContext(KeyIsReady, false)
 						},
 					},
 				},
@@ -117,7 +117,7 @@ func Test_Counter(t *testing.T) {
 				Events: fsm.EventToTransition{
 					Increment: fsm.Transition{
 						State: Active,
-						ContextUpdate: func(
+						UpdateContext: func(
 							m *fsm.Machine,
 							current fsm.State,
 							next fsm.State,
@@ -127,7 +127,7 @@ func Test_Counter(t *testing.T) {
 							err error,
 						) {
 							update = fsm.ContextUpdate{}
-							if v := m.Get(KeyCounter); v != nil {
+							if v := m.GetContext(KeyCounter); v != nil {
 								update[KeyCounter] = v.(int) + 1
 							} else {
 								err = fmt.Errorf("Unable to update KeyCounter")
@@ -161,30 +161,30 @@ func Test_Counter(t *testing.T) {
 	)
 
 	// Try to increment - nothing should happen as we're Inactive at the moment
-	machine.Event(Increment)
-	counter := machine.Get(KeyCounter).(int)
+	machine.SendEvent(Increment)
+	counter := machine.GetContext(KeyCounter).(int)
 	assert.Equal(t, counter, 0, "our counter should still be 0")
 
-	isReady := machine.Get(KeyIsReady).(bool)
+	isReady := machine.GetContext(KeyIsReady).(bool)
 	assert.Equal(t, isReady, false, "The machine shouldn't be ready yet")
 
-	machine.Set(KeyIsReady, true)
-	isReady = machine.Get(KeyIsReady).(bool)
+	machine.SetContext(KeyIsReady, true)
+	isReady = machine.GetContext(KeyIsReady).(bool)
 
 	assert.Equal(t, isReady, true, "context isReady should be true now")
 
-	machine.Event(Activate)
+	machine.SendEvent(Activate)
 	assert.Equal(t, machine.State(), Active, "machine state should be Active")
 
 	// Increment 3 times
-	machine.Event(Increment)
-	machine.Event(Increment)
-	machine.Event(Increment)
+	machine.SendEvent(Increment)
+	machine.SendEvent(Increment)
+	machine.SendEvent(Increment)
 
-	counter = machine.Get(KeyCounter).(int)
+	counter = machine.GetContext(KeyCounter).(int)
 	assert.Equal(t, counter, 3, "our counter should now be 3")
 
-	machine.Event(Deactivate)
+	machine.SendEvent(Deactivate)
 	assert.Equal(t, machine.State(), Inactive, "machine state should now be Inactive")
 
 }

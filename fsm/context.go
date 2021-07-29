@@ -48,7 +48,8 @@ type contextMeta struct {
 
 type internalContext map[ContextKey]*contextMeta
 
-func (m *Machine) Set(key ContextKey, value interface{}) {
+// SetContext for a given key with value
+func (m *Machine) SetContext(key ContextKey, value interface{}) {
 	m.checkIfCreatedCorrectly()
 
 	if v := m.context[key]; v != nil {
@@ -68,11 +69,11 @@ func (m *Machine) Set(key ContextKey, value interface{}) {
 	}
 }
 
-// Get the value for a given ContextKey
+// GetContext the value for a given ContextKey
 // it's up to you to know what the type is and cast it
 //
-// 	isReady = machine.Get(KeyIsReady).(bool)
-func (m *Machine) Get(key ContextKey) interface{} {
+// 	isReady = machine.GetContext(KeyIsReady).(bool)
+func (m *Machine) GetContext(key ContextKey) interface{} {
 	m.checkIfCreatedCorrectly()
 	if v, ok := m.context[key]; ok && v != nil {
 		return v.value
@@ -96,7 +97,7 @@ type ContextUpdateHandler func(
 )
 
 func (m *Machine) handleContextUpdate(t Transition, currentState State) {
-	update, err := t.ContextUpdate(m, currentState, t.State, TransitionEventEntry)
+	update, err := t.UpdateContext(m, currentState, t.State, TransitionEventEntry)
 
 	if err != nil {
 		m.handleError(err, MachineErrorContextUpdate)
