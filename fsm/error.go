@@ -6,7 +6,7 @@ const (
 	MachineErrorUnknown         MachineError = "MachineErrorUnknown"
 	MachineErrorExternal        MachineError = "MachineErrorExternal" // fsm.Error()
 	MachineErrorTransitionEvent MachineError = "MachineErrorTransitionEvent"
-	MachineErrorContextUpdate   MachineError = "MachineErrorContextUpdate"
+	MachineErrorUpdateContext   MachineError = "MachineErrorUpdateContext"
 )
 
 type MachineErrorHandler func(m *Machine, current State, next State, machineError MachineError)

@@ -120,7 +120,7 @@ func Example_counter() {
 					// back to the current state
 					Increment: fsm.Transition{
 						State: Active, // Set the current state, because we want to stay
-						// Set our ContextUpdate handler, this allows us to modify any
+						// Set our UpdateContext handler, this allows us to modify any
 						// value in Context, in particular the ones marked with `write: false`
 						UpdateContext: func(
 							m *fsm.Machine,
@@ -128,10 +128,10 @@ func Example_counter() {
 							next fsm.State,
 							event fsm.TransitionEvent,
 						) (
-							update fsm.ContextUpdate,
+							update fsm.UpdateContext,
 							err error,
 						) {
-							update = fsm.ContextUpdate{}
+							update = fsm.UpdateContext{}
 							if v := m.GetContext(KeyCounter); v != nil {
 								update[KeyCounter] = v.(int) + 1
 							} else {

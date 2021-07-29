@@ -123,10 +123,10 @@ func Test_Counter(t *testing.T) {
 							next fsm.State,
 							event fsm.TransitionEvent,
 						) (
-							update fsm.ContextUpdate,
+							update fsm.UpdateContext,
 							err error,
 						) {
-							update = fsm.ContextUpdate{}
+							update = fsm.UpdateContext{}
 							if v := m.GetContext(KeyCounter); v != nil {
 								update[KeyCounter] = v.(int) + 1
 							} else {

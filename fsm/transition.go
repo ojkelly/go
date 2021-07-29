@@ -23,5 +23,5 @@ type Transition struct {
 
 	// UpdateContext allows to update protected context values in response
 	// to an Event
-	UpdateContext ContextUpdateHandler
+	UpdateContext UpdateContextHandler
 }

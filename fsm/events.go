@@ -82,7 +82,7 @@ func (m *Machine) SendEvent(e Event) {
 	}
 
 	if transition.UpdateContext != nil {
-		m.handleContextUpdate(transition, currentState)
+		m.handleUpdateContext(transition, currentState)
 	}
 
 	m.state = transition.State

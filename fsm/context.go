@@ -82,25 +82,25 @@ func (m *Machine) GetContext(key ContextKey) interface{} {
 	return nil
 }
 
-// ContextUpdate returned from ContextUpdateHandler is a map of which
+// UpdateContext returned from UpdateContextHandler is a map of which
 // key, value pairs in Context to update
-type ContextUpdate map[ContextKey]interface{}
+type UpdateContext map[ContextKey]interface{}
 
-type ContextUpdateHandler func(
+type UpdateContextHandler func(
 	m *Machine,
 	current State,
 	next State,
 	event TransitionEvent,
 ) (
-	update ContextUpdate,
+	update UpdateContext,
 	err error,
 )
 
-func (m *Machine) handleContextUpdate(t Transition, currentState State) {
+func (m *Machine) handleUpdateContext(t Transition, currentState State) {
 	update, err := t.UpdateContext(m, currentState, t.State, TransitionEventEntry)
 
 	if err != nil {
-		m.handleError(err, MachineErrorContextUpdate)
+		m.handleError(err, MachineErrorUpdateContext)
 	}
 
 	for key, value := range update {
