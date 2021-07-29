@@ -85,6 +85,14 @@ func (m *Machine) Event(e Event) {
 	}
 
 	m.state = transition.State
+
+	if m.stateChangeChannel != nil {
+		m.stateChangeChannel <- StateChange{
+			From:  currentState,
+			To:    transition.State,
+			Cause: e,
+		}
+	}
 }
 
 // Success is called by you when a state has completed successfully, and
@@ -101,3 +109,5 @@ func (m *Machine) Success() {
 		return
 	}
 }
+
+// func (m *Machine) StateChangeChannel() *

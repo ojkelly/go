@@ -73,3 +73,18 @@ func (m *Machine) GetNextStates() []State {
 
 	return []State{}
 }
+
+type StateChange struct {
+	From  State
+	To    State
+	Cause Event
+}
+
+// StateChangeChannel receives an StatesChange after the transition from one
+// State to another has completed.
+func (m *Machine) StateChangeChannel() <-chan StateChange {
+	if m.stateChangeChannel == nil {
+		m.stateChangeChannel = make(chan StateChange, 1)
+	}
+	return m.stateChangeChannel
+}

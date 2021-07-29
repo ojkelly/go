@@ -5,19 +5,17 @@ import (
 	"sync"
 )
 
-// Context is used to store extra state that is considered when transitioning
-// between states
-
 // Machine
 type Machine struct {
 	// internals
-	initWithNew  bool
-	context      internalContext
-	events       eventMap
-	state        State
-	states       States
-	id           string
-	errorHandler MachineErrorHandler
+	initWithNew        bool
+	context            internalContext
+	events             eventMap
+	state              State
+	states             States
+	id                 string
+	errorHandler       MachineErrorHandler
+	stateChangeChannel chan StateChange
 
 	lockPublicSet sync.Mutex
 

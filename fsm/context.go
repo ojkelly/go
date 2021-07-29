@@ -31,6 +31,8 @@ func (m *Machine) GetNameForContextKey(s ContextKey) string {
 	return fmt.Sprintf("%d", s)
 }
 
+// Context is used to store extra state that is considered when transitioning
+// between states
 type Context map[ContextKey]ContextMeta
 
 type ContextMeta struct {
