@@ -14,6 +14,8 @@ import (
 )
 ```
 
+Documentation https://pkg.go.dev/ojkelly.dev/fsm
+
 ### How it works
 
 - `Events` cause a `Transition` from one `State` to another `State`
