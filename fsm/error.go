@@ -3,10 +3,16 @@ package fsm
 type MachineError string
 
 const (
-	MachineErrorUnknown         MachineError = "MachineErrorUnknown"
-	MachineErrorExternal        MachineError = "MachineErrorExternal" // fsm.Error()
-	MachineErrorTransitionEvent MachineError = "MachineErrorTransitionEvent"
-	MachineErrorUpdateContext   MachineError = "MachineErrorUpdateContext"
+	MachineErrorUnknown            MachineError = "MachineErrorUnknown"
+	MachineErrorExternal           MachineError = "MachineErrorExternal" // fsm.Error()
+	MachineErrorTransitionEvent    MachineError = "MachineErrorTransitionEvent"
+	MachineErrorUpdateContext      MachineError = "MachineErrorUpdateContext"
+	MachineErrorGuardFail          MachineError = "MachineErrorGuardFail"
+	MachineErrorContextKeyNotFound MachineError = "MachineErrorContextKeyNotFound"
+
+	// MachineErrorEventNotFoundForState occurs when you m.SendEvent() that
+	// the current State has no definition for.
+	MachineErrorEventNotFoundForState MachineError = "MachineErrorEventNotFoundForState"
 )
 
 type MachineErrorHandler func(m *Machine, current State, next State, machineError MachineError)

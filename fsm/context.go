@@ -75,7 +75,16 @@ func (m *Machine) SetContext(key ContextKey, value interface{}) {
 // 	isReady = machine.GetContext(KeyIsReady).(bool)
 func (m *Machine) GetContext(key ContextKey) interface{} {
 	m.checkIfCreatedCorrectly()
-	if v, ok := m.context[key]; ok && v != nil {
+	v, ok := m.context[key]
+
+	if !ok {
+		if m.errorHandler != nil {
+			m.errorHandler(m, m.state, m.state, MachineErrorGuardFail)
+		}
+		return nil
+	}
+
+	if v != nil {
 		return v.value
 	}
 

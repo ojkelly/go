@@ -59,6 +59,9 @@ func (m *Machine) SendEvent(e Event) {
 	}
 
 	if !foundEvent {
+		if m.errorHandler != nil {
+			m.errorHandler(m, currentState, currentState, MachineErrorEventNotFoundForState)
+		}
 		return
 	}
 
@@ -66,6 +69,9 @@ func (m *Machine) SendEvent(e Event) {
 		guardPass := transition.Guard(m, currentState, transition.State)
 
 		if !guardPass {
+			if m.errorHandler != nil {
+				m.errorHandler(m, currentState, currentState, MachineErrorGuardFail)
+			}
 			return
 		}
 	}
@@ -110,5 +116,3 @@ func (m *Machine) Success() {
 		return
 	}
 }
-
-// func (m *Machine) StateChangeChannel() *
