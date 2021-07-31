@@ -80,7 +80,7 @@ func Test_Counter(t *testing.T) {
 		// Context Keys
 		fsm.Context{
 			KeyIsReady: fsm.ContextMeta{
-				Protected: true, // can we use .Set()
+				Protected: false,
 				Inital:    false,
 			},
 			KeyCounter: fsm.ContextMeta{

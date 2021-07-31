@@ -53,10 +53,10 @@ func (m *Machine) SetContext(key ContextKey, value interface{}) {
 	m.checkIfCreatedCorrectly()
 
 	if v := m.context[key]; v != nil {
-		if !v.protected {
+		if v.protected {
 			panic(
 				fmt.Sprintf(
-					"[%s] fsm.Set tried to set value '%v' for protect ContextKey '%s'",
+					"[%s] fsm.Set tried to set value '%v' for protected ContextKey '%s'",
 					m.id,
 					value,
 					m.GetNameForContextKey(key),

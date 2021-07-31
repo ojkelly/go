@@ -78,7 +78,7 @@ func Example_counter() {
 		// Context Keys
 		fsm.Context{
 			KeyIsReady: fsm.ContextMeta{
-				Protected: true, // can we use .Set()
+				Protected: false,
 				Inital:    false,
 			},
 			KeyCounter: fsm.ContextMeta{
