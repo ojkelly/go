@@ -17,6 +17,9 @@ type Machine struct {
 	errorHandler       MachineErrorHandler
 	stateChangeChannel chan StateChange
 
+	stateChangeMtx   sync.Mutex
+	contextChangeMtx sync.Mutex
+
 	lockPublicSet sync.Mutex
 
 	// Debug / Optional
@@ -29,8 +32,12 @@ type Machine struct {
 }
 
 // New Machine
+//
+// stateChangeChannelSize should be set to the number of channels you will be
+// reacting to events from. Most of the time this is safe to set to 1.
 func New(
 	id string,
+	stateChangeChannelSize int,
 	initialState State,
 	context Context,
 	events []Event,
@@ -53,13 +60,14 @@ func New(
 	}
 
 	return &Machine{
-		initWithNew:   true,
-		events:        eMap,
-		state:         initialState,
-		states:        states,
-		context:       cMap,
-		id:            id,
-		lockPublicSet: sync.Mutex{},
+		initWithNew:        true,
+		events:             eMap,
+		state:              initialState,
+		states:             states,
+		context:            cMap,
+		id:                 id,
+		stateChangeChannel: make(chan StateChange, stateChangeChannelSize),
+		lockPublicSet:      sync.Mutex{},
 		// Debug
 		hasSetStateNames:      false,
 		stateNames:            StateNames{},
@@ -83,5 +91,14 @@ func (m *Machine) Id() string {
 func (m *Machine) checkIfCreatedCorrectly() {
 	if !m.initWithNew {
 		panic(fmt.Sprintf("[%s] fsm.Machine was not created with fsm.New()", m.id))
+	}
+}
+
+// Stop the machine, and signalt to all watching for changes, that it's done
+func (m *Machine) Stop() {
+	m.stateChangeChannel <- StateChange{
+		From:   m.state,
+		To:     m.state,
+		IsLast: true,
 	}
 }

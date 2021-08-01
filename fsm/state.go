@@ -63,7 +63,8 @@ type StateNode struct {
 // State returns the current state the Machine is in
 func (m *Machine) State() State {
 	m.checkIfCreatedCorrectly()
-
+	m.stateChangeMtx.Lock()
+	defer m.stateChangeMtx.Unlock()
 	return m.state
 }
 
@@ -74,17 +75,19 @@ func (m *Machine) GetNextStates() []State {
 	return []State{}
 }
 
+// StateChange event sent via m.StateChangeChannel() after a State transition
+// has completed.
+// If IsLast is true, it means m.Stop() has been called, and your watcher
+// can we stopped.
 type StateChange struct {
-	From  State
-	To    State
-	Cause Event
+	From   State
+	To     State
+	Cause  Event
+	IsLast bool
 }
 
 // StateChangeChannel receives an StatesChange after the transition from one
 // State to another has completed.
 func (m *Machine) StateChangeChannel() <-chan StateChange {
-	if m.stateChangeChannel == nil {
-		m.stateChangeChannel = make(chan StateChange, 1)
-	}
 	return m.stateChangeChannel
 }

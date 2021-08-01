@@ -1,6 +1,7 @@
 package fsm_test
 
 import (
+	"context"
 	"fmt"
 
 	"ojkelly.dev/fsm"
@@ -52,10 +53,6 @@ func Example_counter() {
 		m.SendEvent(Deactivate)
 	}
 
-	successHandler := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
-		fmt.Println("Success: Left", m.GetNameForState(current), "entered", m.GetNameForState(next))
-	}
-
 	logEvent := func(m *fsm.Machine, current fsm.State, next fsm.State, event fsm.TransitionEvent) {
 		fmt.Println("Left", m.GetNameForState(current), "entered", m.GetNameForState(next), event)
 	}
@@ -72,6 +69,7 @@ func Example_counter() {
 	machine := fsm.New(
 		// machine ID
 		"counterExample",
+		1,
 		// initial state
 		Inactive,
 
@@ -112,9 +110,7 @@ func Example_counter() {
 			Active: fsm.StateNode{
 				// Set our generic error handler to print out errors
 				Error: errorHandler,
-				// Set a success handler to log out the success
-				Success: successHandler,
-				/// Register all the Events that have an affect on this State
+				// Register all the Events that have an affect on this State
 				Events: fsm.EventToTransition{
 					// for the Increment Event increase the counter, but transition
 					// back to the current state
@@ -156,47 +152,76 @@ func Example_counter() {
 	machine.AddEventNames(eventNames)
 	machine.AddContextKeyNames(contextKeyNames)
 
-	// Check the initial state of the machine
-	fmt.Println("Initial state is", machine.State())
+	ctx, cancel := context.WithCancel(context.Background())
+	stateChanges := []string{}
 
-	// Again, but this time with our debug name - usefull for debugging and logs
-	fmt.Println("StateName for the current state is", machine.GetNameForState(machine.State()))
+	go func() {
+		for stateChange := range machine.StateChangeChannel() {
+			if stateChange.IsLast {
+				return
+			}
+			stateChanges = append(stateChanges, fmt.Sprintf(
+				"%v = (%v + %v)",
+				machine.GetNameForState(stateChange.To),
+				machine.GetNameForState(stateChange.From),
+				machine.GetNameForEvent(stateChange.Cause),
+			),
+			)
+		}
+	}()
 
-	// Try to increment - nothing should happen as we're Inactive at the moment
-	machine.SendEvent(Increment)
+	go func() {
+		// Check the initial state of the machine
+		fmt.Println("Initial state is", machine.State())
 
-	// Let's check the counter. It shouldn't increase, as we can only do that
-	// when the State is Active
-	fmt.Println("Before incrementing Counter it's", machine.GetContext(KeyCounter).(int))
+		// Again, but this time with our debug name - usefull for debugging and logs
+		fmt.Println("StateName for the current state is", machine.GetNameForState(machine.State()))
 
-	// Check if the ContextKey KeyIsReady
-	fmt.Println("Before setting the KeyIsReady it's", machine.GetContext(KeyIsReady).(bool))
+		// Try to increment - nothing should happen as we're Inactive at the moment
+		machine.SendEvent(Increment)
 
-	// Set the ContextKey KeyIsReady to true
-	machine.SetContext(KeyIsReady, true)
+		// Let's check the counter. It shouldn't increase, as we can only do that
+		// when the State is Active
+		fmt.Println("Before incrementing Counter it's", machine.GetContext(KeyCounter).(int))
 
-	// Confirm that our ContextKey is set
-	fmt.Println("Context KeyIsReady is", machine.GetContext(KeyIsReady).(bool))
+		// Check if the ContextKey KeyIsReady
+		fmt.Println("Before setting the KeyIsReady it's", machine.GetContext(KeyIsReady).(bool))
 
-	// Send an Activate Event, which will transition to the Active State if
-	// KeyIsReady is true
-	machine.SendEvent(Activate)
+		// Set the ContextKey KeyIsReady to true
+		machine.SetContext(KeyIsReady, true)
 
-	// Let's see what State we're in now
-	fmt.Println("After Activate Event machine State is", machine.GetNameForState(machine.State()))
+		// Confirm that our ContextKey is set
+		fmt.Println("Context KeyIsReady is", machine.GetContext(KeyIsReady).(bool))
 
-	// Increment 3 times
-	machine.SendEvent(Increment)
-	machine.SendEvent(Increment)
-	machine.SendEvent(Increment)
+		// Send an Activate Event, which will transition to the Active State if
+		// KeyIsReady is true
+		machine.SendEvent(Activate)
 
-	// Check the status of the KeyCounter value
-	fmt.Println("Final counter is at", machine.GetContext(KeyCounter).(int))
+		// Let's see what State we're in now
+		fmt.Println("After Activate Event machine State is", machine.GetNameForState(machine.State()))
 
-	// Now we can send the Deactivate Event as we're finished
-	machine.SendEvent(Deactivate)
-	fmt.Println("Final State is", machine.GetNameForState(machine.State()))
+		// Increment 3 times
+		machine.SendEvent(Increment)
+		machine.SendEvent(Increment)
+		machine.SendEvent(Increment)
 
+		// Check the status of the KeyCounter value
+		fmt.Println("Final counter is at", machine.GetContext(KeyCounter).(int))
+
+		// Now we can send the Deactivate Event as we're finished
+		machine.SendEvent(Deactivate)
+		fmt.Println("Final State is", machine.GetNameForState(machine.State()))
+
+		machine.Stop()
+		cancel()
+	}()
+
+	<-ctx.Done()
+
+	fmt.Println("State changes:")
+	for _, c := range stateChanges {
+		fmt.Println(" ", c)
+	}
 	// Output:
 	// Initial state is 0
 	// StateName for the current state is Inactive
@@ -207,4 +232,11 @@ func Example_counter() {
 	// After Activate Event machine State is Active
 	// Final counter is at 3
 	// Final State is Inactive
+	// State changes:
+	//   Active = (Inactive + Activate)
+	//   Active = (Active + Increment)
+	//   Active = (Active + Increment)
+	//   Active = (Active + Increment)
+	//   Inactive = (Active + Deactivate)
+
 }

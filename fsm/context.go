@@ -51,6 +51,8 @@ type internalContext map[ContextKey]*contextMeta
 // SetContext for a given key with value
 func (m *Machine) SetContext(key ContextKey, value interface{}) {
 	m.checkIfCreatedCorrectly()
+	m.contextChangeMtx.Lock()
+	defer m.contextChangeMtx.Unlock()
 
 	if v := m.context[key]; v != nil {
 		if v.protected {
@@ -75,6 +77,9 @@ func (m *Machine) SetContext(key ContextKey, value interface{}) {
 // 	isReady = machine.GetContext(KeyIsReady).(bool)
 func (m *Machine) GetContext(key ContextKey) interface{} {
 	m.checkIfCreatedCorrectly()
+	m.contextChangeMtx.Lock()
+	defer m.contextChangeMtx.Unlock()
+
 	v, ok := m.context[key]
 
 	if !ok {

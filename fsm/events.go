@@ -33,9 +33,12 @@ type eventMap map[Event]bool
 type EventToTransition map[Event]Transition
 
 // SendEvent to the fsm.Machine to change States
-func (m *Machine) SendEvent(e Event) {
+// blocks until the state transition has completed or failed
+func (m *Machine) SendEvent(e Event) bool {
 	m.checkIfCreatedCorrectly()
 
+	m.stateChangeMtx.Lock()
+	defer m.stateChangeMtx.Unlock()
 	// validate event
 	found := m.events[e]
 	if !found {
@@ -62,7 +65,7 @@ func (m *Machine) SendEvent(e Event) {
 		if m.errorHandler != nil {
 			m.errorHandler(m, currentState, currentState, MachineErrorEventNotFoundForState)
 		}
-		return
+		return false
 	}
 
 	if transition.Guard != nil {
@@ -72,7 +75,7 @@ func (m *Machine) SendEvent(e Event) {
 			if m.errorHandler != nil {
 				m.errorHandler(m, currentState, currentState, MachineErrorGuardFail)
 			}
-			return
+			return false
 		}
 	}
 
@@ -93,26 +96,10 @@ func (m *Machine) SendEvent(e Event) {
 
 	m.state = transition.State
 
-	if m.stateChangeChannel != nil {
-		m.stateChangeChannel <- StateChange{
-			From:  currentState,
-			To:    transition.State,
-			Cause: e,
-		}
+	m.stateChangeChannel <- StateChange{
+		From:  currentState,
+		To:    transition.State,
+		Cause: e,
 	}
-}
-
-// Success is called by you when a state has completed successfully, and
-// you want the FSM to transition automatically
-func (m *Machine) Success() {
-	m.checkIfCreatedCorrectly()
-
-	currentState := m.state
-	node := m.states[currentState]
-
-	handler := node.Success
-	if handler != nil {
-		handler(m, currentState, currentState, TransitionEventSuccess)
-		return
-	}
+	return true
 }
