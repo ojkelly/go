@@ -1,0 +1,6 @@
+name: fsm
+
+scripts:
+  build: go build ./...
+
+  test: go test ./...

@@ -101,5 +101,6 @@ func (m *Machine) SendEvent(e Event) bool {
 		To:    transition.State,
 		Cause: e,
 	}
+	//
 	return true
 }

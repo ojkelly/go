@@ -1,0 +1,9 @@
+name: go
+version: 1.0.0
+main: index.js
+repository: git@github.com:ojkelly/go.git
+author: Owen Kelly <owen@owenkelly.com.au>
+license: MIT
+workspaces:
+  - fsm
+  - ephemeral

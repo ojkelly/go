@@ -1,0 +1,26 @@
+{
+  "comment": "This is an auto-generated file, it keeps track of whats been built. This is a local file, don't store this in version control.",
+  "packages": {
+    "fsm#test": {
+      "lastModified": 1627893035221.4436,
+      "status": "succeeded",
+      "haveCheckedForRerun": false,
+      "rerun": true,
+      "command": "build"
+    },
+    "fsm#build": {
+      "lastModified": 1627893170321.9065,
+      "status": "succeeded",
+      "haveCheckedForRerun": false,
+      "rerun": true,
+      "command": "build"
+    },
+    "ephemeral#build": {
+      "lastModified": 1627893318391.3003,
+      "status": "succeeded",
+      "haveCheckedForRerun": true,
+      "rerun": false,
+      "command": "build"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+name: ephemeral
+
+scripts:
+  build: go build   -o ./.build/ephemeral cmd/main.go
+
+  test: go test ./...
+
+  dev: go run cmd/main.go
