@@ -5,4 +5,8 @@ scripts:
 
   test: go test ./...
 
-  dev: go run cmd/main.go
+  dev: go run cmd/main.go --command "go run test/cmd/main.go" ../**/*.go *.yaml
+  dev:yes: go run cmd/main.go --command "yes" ../**/*.go *.yaml
+
+  # we're using ephemeral to run against ephemeral to print ephemeral help
+  dev:help: go run cmd/main.go --command "go run cmd/main.go -h" ../**/*.go *.yaml
